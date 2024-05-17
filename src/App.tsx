@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { Auth, getUser } from "./auth";
+import { getUserFragments } from "./api";
+
 export default function App() {
   const [user, setUser]: any = useState(null);
 
@@ -8,6 +10,7 @@ export default function App() {
       const user = await getUser();
       if (user !== null) {
         setUser(user);
+         const userFragments = await getUserFragments(user);
       }
     };
     fetchUser();
