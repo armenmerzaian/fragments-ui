@@ -27,3 +27,50 @@ export async function getUserFragments(user: any) {
     console.error("Unable to call GET /v1/fragment", { err });
   }
 }
+
+
+/**
+ * Get fragment data for a specific fragment id.
+ */
+export async function getFragmentById(user: any, id: string) {
+  console.log(`Requesting fragment data for id: ${id}...`);
+  try {
+    const res = await fetch(`${apiUrl}/v1/fragments/${id}`, {
+      headers: user.authorizationHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(`${res.status} ${res.statusText}`);
+    }
+    //response is plain text, so we need to call res.text() instead of res.json()
+    const data = await res.text();
+    console.log(`Successfully got fragment data for id: ${id}`, { data });
+    return data;
+  } catch (err) {
+    console.error(`Unable to call GET /v1/fragments/${id}`, { err });
+  }
+}
+
+/**
+ * Create a new fragment for the authenticated user.
+ */
+export async function createFragment(user: any, content: string, type: string) {
+  console.log("Creating a new fragment...");
+  try {
+    const res = await fetch(`${apiUrl}/v1/fragments`, {
+      method: "POST",
+      headers: {
+        ...user.authorizationHeaders(),
+        "Content-Type": type,
+      },
+      body: content,
+    });
+    if (!res.ok) {
+      throw new Error(`${res.status} ${res.statusText}`);
+    }
+    const data = await res.json();
+    console.log("Successfully created fragment", { data });
+    return data;
+  } catch (err) {
+    console.error("Unable to call POST /v1/fragments", { err });
+  }
+}
