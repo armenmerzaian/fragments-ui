@@ -71,6 +71,10 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+
+    ul li {
+      color: black;
+    }
 }
 
 .main-wrapper {
@@ -82,10 +86,6 @@ button:focus-visible {
   height: 100vh;
   margin-left: auto;
   margin-right: auto;
-}
-
-ul li {
-  color: white;
 }
 
 
