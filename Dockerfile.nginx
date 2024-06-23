@@ -1,0 +1,24 @@
+# Dockerfile for Fragments UI
+
+FROM nginx:1.26.1
+
+# 1. Setup nodejs
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get update \
+    && apt-get install -y \
+        build-essential \
+        nodejs \
+    && rm -fr /var/lib/apt/lists/*
+
+# 2. copy our source code in
+WORKDIR /usr/local/src/fragments-ui
+COPY . .
+
+# 3. build the app
+RUN npm ci
+
+# 4. copy the build output to dir that nginx serves from
+RUN npm run build && \
+    cp -a ./dist/. /usr/share/nginx/html/
+
+EXPOSE 80
