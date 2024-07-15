@@ -1,4 +1,4 @@
-// src/api.js
+// src/api.ts
 
 // fragments microservice API to use, defaults to localhost:8080 if not set in env
 const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
@@ -8,10 +8,10 @@ const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
  * fragments microservice (currently only running locally). We expect a user
  * to have an `idToken` attached, so we can send that along with the request.
  */
-export async function getUserFragments(user: any) {
+export async function getUserFragments(user: any, expand: number = 0) {
   console.log("Requesting user fragments data...");
   try {
-    const res = await fetch(`${apiUrl}/v1/fragments`, {
+    const res = await fetch(`${apiUrl}/v1/fragments?expand=${expand}`, {
       // Generate headers with the proper Authorization bearer token to pass.
       // We are using the `authorizationHeaders()` helper method we defined
       // earlier, to automatically attach the user's ID token.
@@ -32,21 +32,52 @@ export async function getUserFragments(user: any) {
 /**
  * Get fragment data for a specific fragment id.
  */
-export async function getFragmentById(user: any, id: string) {
-  console.log(`Requesting fragment data for id: ${id}...`);
+export async function getFragmentById(user: any, id: string, ext: string = '') {
+ console.log(`Requesting fragment data for id: ${id}...`);
+ try {
+   const res = await fetch(
+     `${apiUrl}/v1/fragments/${id}${ext ? `.${ext}` : ""}`,
+     {
+       headers: user.authorizationHeaders(),
+     }
+   );
+   if (!res.ok) {
+     throw new Error(`${res.status} ${res.statusText}`);
+   }
+
+   // Check the response content type to determine how to parse the response
+   const contentType = res.headers.get("Content-Type");
+   let data;
+   if (contentType?.includes("application/json")) {
+     data = await res.json();
+   } else {
+     data = await res.text();
+   }
+
+   console.log(`Successfully got fragment data for id: ${id}`, { data });
+   return data;
+ } catch (err) {
+   console.error(`Unable to call GET /v1/fragments/${id}`, { err });
+ }
+}
+
+/**
+ * Get metadata for a specific fragment id.
+ */
+export async function getFragmentMetadata(user: any, id: string) {
+  console.log(`Requesting fragment metadata for id: ${id}...`);
   try {
-    const res = await fetch(`${apiUrl}/v1/fragments/${id}`, {
+    const res = await fetch(`${apiUrl}/v1/fragments/${id}/info`, {
       headers: user.authorizationHeaders(),
     });
     if (!res.ok) {
       throw new Error(`${res.status} ${res.statusText}`);
     }
-    //response is plain text, so we need to call res.text() instead of res.json()
-    const data = await res.text();
-    console.log(`Successfully got fragment data for id: ${id}`, { data });
+    const data = await res.json();
+    console.log(`Successfully got fragment metadata for id: ${id}`, { data });
     return data;
   } catch (err) {
-    console.error(`Unable to call GET /v1/fragments/${id}`, { err });
+    console.error(`Unable to call GET /v1/fragments/${id}/info`, { err });
   }
 }
 

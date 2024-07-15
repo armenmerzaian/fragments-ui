@@ -1,13 +1,24 @@
 import { useState, useEffect } from "react";
 import { Auth, getUser } from "./auth";
-import { getUserFragments, getFragmentById, createFragment } from "./api";
+import {
+  getUserFragments,
+  getFragmentById,
+  getFragmentMetadata,
+  createFragment,
+} from "./api";
+import NavBar from "./components/NavBar";
+import InfoSection from "./components/InfoSection";
+import UserSection from "./components/UserSection";
 
 export default function App() {
   const [user, setUser]: any = useState(null);
   const [fragments, setFragments] = useState([]);
   const [fragmentId, setFragmentId] = useState("");
   const [fragmentData, setFragmentData] = useState("");
+  const [fragmentMetadata, setFragmentMetadata] = useState("");
   const [newFragmentContent, setNewFragmentContent] = useState("");
+  const [newFragmentType, setNewFragmentType] = useState("text/plain");
+  const [fragmentExt, setFragmentExt] = useState("");
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -21,15 +32,28 @@ export default function App() {
 
   const handleGetFragments = async () => {
     if (user) {
-      const userFragments = await getUserFragments(user);
+      const userFragments = await getUserFragments(user, 1); // Use expand=1 to get expanded metadata
       setFragments(userFragments.fragments || []);
     }
   };
 
   const handleGetFragmentById = async () => {
     if (user && fragmentId) {
-      const fragment = await getFragmentById(user, fragmentId);
-      setFragmentData(fragment || "");
+      const fragment = await getFragmentById(user, fragmentId, fragmentExt);
+      if (fragment) {
+        setFragmentData(
+          fragmentExt ? fragment : JSON.stringify(fragment, null, 2)
+        );
+      } else {
+        setFragmentData("Fragment not found");
+      }
+    }
+  };
+
+  const handleGetFragmentMetadata = async () => {
+    if (user && fragmentId) {
+      const metadata = await getFragmentMetadata(user, fragmentId);
+      setFragmentMetadata(JSON.stringify(metadata, null, 2));
     }
   };
 
@@ -38,7 +62,7 @@ export default function App() {
       const newFragment = await createFragment(
         user,
         newFragmentContent,
-        "text/plain"
+        newFragmentType
       );
       console.log("New fragment created:", newFragment);
       handleGetFragments(); // Refresh the fragments list
@@ -48,59 +72,34 @@ export default function App() {
   return (
     <div className="main-wrapper">
       <h1>Fragments UI</h1>
-      <section className="card">
-        <nav>
-          <button
-            hidden={user}
-            id="login"
-            onClick={() => Auth.federatedSignIn()}
-          >
-            Login
-          </button>{" "}
-          <button
-            id="logout"
-            onClick={() => Auth.signOut()}
-            disabled={!user ? true : false}
-          >
-            Logout
-          </button>
-        </nav>
-      </section>
-      <section hidden={!user} id="user">
-        <h2>
-          Hello <span className="username">{user?.username}</span>!
-        </h2>
-
-        <div>
-          <button onClick={handleGetFragments}>Get Fragments List</button>
-          <ul>
-            {fragments.map((fragment: any, idx) => (
-              <li key={idx}>{fragment}</li>
-            ))}
-          </ul>
-        </div>
-
-        <div>
-          <input
-            type="text"
-            value={fragmentId}
-            onChange={(e) => setFragmentId(e.target.value)}
-            placeholder="Fragment ID"
-          />
-          <button onClick={handleGetFragmentById}>Get Fragment by ID</button>
-          <p>{fragmentData}</p>
-        </div>
-
-        <div>
-          <input
-            type="text"
-            value={newFragmentContent}
-            onChange={(e) => setNewFragmentContent(e.target.value)}
-            placeholder="New Fragment Content"
-          />
-          <button onClick={handleCreateFragment}>Create Fragment</button>
-        </div>
-      </section>
+      <NavBar
+        user={user}
+        onLogin={Auth.federatedSignIn}
+        onLogout={Auth.signOut}
+      />
+      <InfoSection />
+      {user && (
+        <UserSection
+          user={user}
+          fragments={fragments}
+          fragmentId={fragmentId}
+          fragmentData={fragmentData}
+          fragmentMetadata={fragmentMetadata}
+          newFragmentContent={newFragmentContent}
+          newFragmentType={newFragmentType}
+          fragmentExt={fragmentExt}
+          onGetFragments={handleGetFragments}
+          onGetFragmentById={handleGetFragmentById}
+          onGetFragmentMetadata={handleGetFragmentMetadata}
+          onCreateFragment={handleCreateFragment}
+          setFragmentId={setFragmentId}
+          setFragmentData={setFragmentData}
+          setFragmentMetadata={setFragmentMetadata}
+          setNewFragmentContent={setNewFragmentContent}
+          setNewFragmentType={setNewFragmentType}
+          setFragmentExt={setFragmentExt}
+        />
+      )}
     </div>
   );
 }
