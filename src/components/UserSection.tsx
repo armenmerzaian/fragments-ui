@@ -40,8 +40,6 @@ const UserSection: React.FC<UserSectionProps> = ({
   onGetFragmentMetadata,
   onCreateFragment,
   setFragmentId,
-  setFragmentData,
-  setFragmentMetadata,
   setNewFragmentContent,
   setNewFragmentType,
   setFragmentExt,

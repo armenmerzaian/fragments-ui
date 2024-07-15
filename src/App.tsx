@@ -74,8 +74,8 @@ export default function App() {
       <h1>Fragments UI</h1>
       <NavBar
         user={user}
-        onLogin={Auth.federatedSignIn}
-        onLogout={Auth.signOut}
+        onLogin={() => Auth.federatedSignIn()}
+        onLogout={() => Auth.signOut()}
       />
       <InfoSection />
       {user && (

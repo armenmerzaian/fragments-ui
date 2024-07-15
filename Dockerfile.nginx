@@ -9,11 +9,16 @@ RUN apk update && apk add --no-cache curl bash
 # Set the working directory
 WORKDIR /usr/local/src/fragments-ui
 
-# Copy the source code
+# Copy package.json and package-lock.json files into /app
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy all src files into /app
 COPY . .
 
-# Install dependencies and build the app
-RUN npm ci && npm run build
+RUN ["npm", "run", "build"]
 
 # Stage 2: Serve the application using NGINX
 FROM nginx:1.26.1-alpine3.19@sha256:208ae3c180b7d26f6a8046fac4c8468b2ab8bd92123ab73f9c5ad0f6f1c5543d
@@ -26,4 +31,3 @@ EXPOSE 80
 
 # Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
-
