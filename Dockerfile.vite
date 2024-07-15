@@ -1,7 +1,7 @@
 # Dockerfile for Fragments UI
 
 # Stage 0: install node + dependencies
-FROM node:20.13.0 
+FROM node:20.14-alpine3.20@sha256:804aa6a6476a7e2a5df8db28804aa6c1c97904eefb01deed5d6af24bb51d0c81
 
 # LABEL adds metadata to an image
 LABEL maintainer="Armen Merzaian <amerzanian@myseneca.ca>" \
