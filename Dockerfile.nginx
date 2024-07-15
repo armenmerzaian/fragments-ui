@@ -1,31 +1,29 @@
 # Dockerfile for Fragments UI
 
-FROM nginx:1.26.1-alpine3.19@sha256:208ae3c180b7d26f6a8046fac4c8468b2ab8bd92123ab73f9c5ad0f6f1c5543d
+# Stage 1: Build the application
+FROM node:20.14-alpine3.20@sha256:804aa6a6476a7e2a5df8db28804aa6c1c97904eefb01deed5d6af24bb51d0c81 as build
 
 # 0. Install CURL and Bash
-RUN apk update
-RUN apk add --no-cache curl bash
+RUN apk update && apk add --no-cache curl bash
 
-# 1. Install Node.js, npm, and build tools
-RUN apk add --no-cache nodejs npm build-base
-
-# 2. Set the working directory
+# Set the working directory
 WORKDIR /usr/local/src/fragments-ui
 
-# 3. Copy the source code
+# Copy the source code
 COPY . .
 
-# 4. Install dependencies
-RUN npm ci
+# Install dependencies and build the app
+RUN npm ci && npm run build
 
-# 5. Build the app
-RUN npm run build
+# Stage 2: Serve the application using NGINX
+FROM nginx:1.26.1-alpine3.19@sha256:208ae3c180b7d26f6a8046fac4c8468b2ab8bd92123ab73f9c5ad0f6f1c5543d
 
-# 6. Copy the build output to the directory that nginx serves from
-RUN cp -a ./dist/. /usr/share/nginx/html/
+# Copy the build output from the build stage to the directory that nginx serves from
+COPY --from=build /usr/local/src/fragments-ui/dist /usr/share/nginx/html
 
 # Expose port 80
 EXPOSE 80
 
 # Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
+
