@@ -32,7 +32,7 @@ export async function getUserFragments(user: any, expand: number = 0) {
 /**
  * Get fragment data for a specific fragment id.
  */
-export async function getFragmentById(user: any, id: string, ext: string = '') {
+export async function getFragmentById(user: any, id: string, ext: any) {
  console.log(`Requesting fragment data for id: ${id}...`);
  try {
    const res = await fetch(
@@ -89,10 +89,7 @@ export async function createFragment(user: any, content: string, type: string) {
   try {
     const res = await fetch(`${apiUrl}/v1/fragments`, {
       method: "POST",
-      headers: {
-        ...user.authorizationHeaders(),
-        "Content-Type": type,
-      },
+      headers: user.authorizationHeaders(type),
       body: content,
     });
     if (!res.ok) {
@@ -103,5 +100,48 @@ export async function createFragment(user: any, content: string, type: string) {
     return data;
   } catch (err) {
     console.error("Unable to call POST /v1/fragments", { err });
+  }
+}
+
+/**
+ * Update an existing fragment for the authenticated user.
+ */
+export async function updateFragment(user: any, id: string, content: string, type: string) {
+  console.log(`Updating fragment with id: ${id}...`);
+  try {
+    const res = await fetch(`${apiUrl}/v1/fragments/${id}`, {
+      method: "PUT",
+      headers: user.authorizationHeaders(type),
+      body: content,
+    });
+    if (!res.ok) {
+      throw new Error(`${res.status} ${res.statusText}`);
+    }
+    const data = await res.json();
+    console.log("Successfully updated fragment", { data });
+    return data;
+  } catch (err) {
+    console.error(`Unable to call PUT /v1/fragments/${id}`, { err });
+  }
+}
+
+/**
+ * Delete a fragment for the authenticated user.
+ */
+export async function deleteFragment(user: any, id: string) {
+  console.log(`Deleting fragment with id: ${id}...`);
+  try {
+    const res = await fetch(`${apiUrl}/v1/fragments/${id}`, {
+      method: "DELETE",
+      headers: user.authorizationHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(`${res.status} ${res.statusText}`);
+    }
+    console.log(`Successfully deleted fragment with id: ${id}`);
+    return true;
+  } catch (err) {
+    console.error(`Unable to call DELETE /v1/fragments/${id}`, { err });
+    return false;
   }
 }
