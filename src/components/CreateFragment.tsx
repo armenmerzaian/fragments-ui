@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import { createFragment } from "../api";
-import { getUser } from "../auth";
 import { FileUploader } from "react-drag-drop-files";
 
 const fileTypes = [
